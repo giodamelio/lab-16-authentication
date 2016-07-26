@@ -12,6 +12,9 @@
     ],
     "space-before-function-paren": ["error", "never"],
     "prefer-rest-params": 0,
-    "no-underscore-dangle": ["error", { "allowAfterThis": true }]
+    "no-underscore-dangle": ["error", { "allowAfterThis": true }],
+    "import/order": ["error", {
+      "newlines-between": "always"
+    }]
   }
 }

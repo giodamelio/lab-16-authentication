@@ -1,4 +1,4 @@
-![cf](https://i.imgur.com/7v5ASc8.png) lab 11 single resource express api
+![cf](https://i.imgur.com/7v5ASc8.png) lab 16 express authorization
 ======
 
 # To Submit this Assignment
@@ -13,6 +13,7 @@
 * create a package.json that lists all dependencies and developer dependencies
 * include an .eslintrc
 * include a .gitignore
+ * **add the string `db` to a new line in your gitignore file so that you dont include the db directory monogd is storeing its files in!**
 * create a gulpfile
  * have a lint task for running eslint
  * have a test task for running mocha
@@ -21,51 +22,49 @@
 
 # Directions
 * Create these directories to organize your code: 
+ * db - use the command `mongod --dbpath ./db` to start mongod using this directory
  * lib
  * model
  * route
  * test
 * Create a HTTP Server using `express`
-* Create an Object Constructor that creates an AppError
- * create message, statusCode and responseMessage properties
- * add static methods to the Constructor that check if an error is an `instanceof` AppError
- * add statick methods for creating 400, 404, and 500 error messages
- * Use the AppErrors any where you find an error in your app.
- * If you encounter an error in your route respoond with the AppError status code, and response message
-* Create a Object Constructor that creates a _simple resource_ with at least 3 properties
- * An `id` property that is set to a unique **node-uuid** id is required
- * Also include two other properties of your choice (like name, creationDate, etc.) 
-* use the `body-parser` express middleware to on `POST` and `PUT` routes
+* Use the `http-errors` npm  module with the new`error-response` middleware from lecture
+* Create a **User Model** using mongoose with the properties `username`, `password`
+ * The users must have a unique username 
+ * The user must never store the password as plain text (hash the password)
+ * The user must have a method for genorating a token from the user `_id` 
+* Create a Basic Auth Middleware for parsing basic auth headers
+* use the `body-parser` express middleware on the `POST` and `PUT` routes
 * use the npm `debug` module to log the functions being executed in your app
-* using the express `Router` create a route for doing **RESTFUL CRUD** operations on your _simple resource_
- * store all objects created on the in memory `storage` module we created in lecture
+* using the express `Router` create an auth router with routes for **signup** and **signin**
+* Your server should depend on the environment variables
+ * `DEBUG` - for turing on logging
+ * `APP_SECRET` - for signing and verify tokens
+ * `PORT` - for setting the port your server will listen on
+ * `MONGODB_URI` - for setting the URI that mongoose will conect to
 
 ## Server Endpoints
-### `/api/simple-resource-name`
+### `/api/signup`
 * `POST` request
- * pass data as stringifed json in the body of a post request to create a resource
+ * the client should pass the username and passord in the body of the request
+ * the server should respond with a token genoratorated using jsonwebtoken and the users `_id`
+ * the server should respond with a 400 Bad Request to failed request
 
-### `/api/simple-resource-name/:id`
+### `/api/signin`
 * `GET` request 
- * pass the id of a resource though the url endpoint to `req.params` to fetch a simple-resource   
-* `PUT` request
- * pass data as stringifed json in the body of a put request to update a resource
-* `DELETE` request
- * pass the id of a resource though the url endpoint to `req.params` to delete a simple-resource   
+ * the client should pass the username and password to the server using a _Basic_ auth header
+ * the server should respond with a token to authenticated users
+ * the server should respond with a 401 Unauthorized to non authenticated users
 
 ## Tests 
 * your tests should start your server when they begin and stop your server when they finish
 * write a test to ensure that your api returns a status code of 404 for routes that have not been registered
-* write tests to ensure your `/api/simple-resource-name` endpoint responds as described for each condition below:
- * `GET` - test 404, responds with 'not found' for valid request made with an id that was not found
- * `GET` - test 400, responds with 'bad request' if no id was provided in the request
- * `GET` - test 200, response body like `{<data>}` for a request made with a valid id 
- * `PUT` - test 400, responds with 'bad request' for if no `body provided` or `invalid body`
- * `PUT` - test 200, response body like  `{<data>}` for a post request with a valid body
- * `POST` - test 400, responds with 'bad request' for if no `body provided` or `invalid body`
- * `POST` - test 200, response body like  `{<data>}` for a post request with a valid body
+* `/api/signup`
+ * `POST` - test 400, responds with the `http-errors` 401 name, for if no `body provided` or `invalid body`
+ * `POST` - test 200, response body like `<token>` for a post request with a valid body
+* `/api/signin`
+ * `GET` - test 401, responds with the `http-errors` 401 name, if the users could not be authenticated
+ * `GET` - test 200, response body like `<token>` for a request with a valid basic auth header
 
-## Bonus
-* **2pts** a `GET` request to `/api/simple-resource-name/all` should retrun an array of all of the ids for that resource
-* **1pt** write tests for the `DELETE` request
-
+#Bonus
+* Have your token be generated with an `idd` equal to a random unique hash rather than the user's `_id`

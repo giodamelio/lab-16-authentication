@@ -4,55 +4,70 @@ const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const mocha = require('gulp-mocha');
 const nodemon = require('gulp-nodemon');
+const istanbul = require('gulp-istanbul');
 
-const srcFiles = ['lib/**/*.js', 'bin/*'];
-const testFiles = 'test/**/*.js';
+const srcFiles = ['lib/**/*.js'];
+const testFiles = ['test/**/*.js', 'gulpfile.js'];
 
 const eslintRules = JSON.parse(fs.readFileSync('./.eslintrc'));
 
 // Linter tasks -------------------------------------------
-gulp.task('lint:src', () => {
-  return gulp.src(srcFiles)
+gulp.task('lint:src', () => (
+  gulp.src(srcFiles)
     .pipe(eslint(eslintRules))
     .pipe(eslint.format())
-    .pipe(eslint.failAfterError());
-});
+    .pipe(eslint.failAfterError())
+));
 
-gulp.task('lint:test', () => {
-  return gulp.src(testFiles)
+gulp.task('lint:test', () => (
+  gulp.src(testFiles)
     .pipe(eslint(Object.assign(eslintRules, {
-      envs: ['node', 'es6', 'mocha']
+      envs: ['node', 'es6', 'mocha'],
     })))
     .pipe(eslint.format())
-    .pipe(eslint.failAfterError());
-});
+    .pipe(eslint.failAfterError())
+));
 
 gulp.task('lint', ['lint:src', 'lint:test']);
 
 gulp.task('lint:watch', () => {
   gulp.watch(srcFiles, ['lint:src'])
     .on('change', (event) => {
-      console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+      console.log(`File ${event.path} was ${event.type} running tasks...`);
     });
 
   gulp.watch(testFiles, ['lint:test'])
     .on('change', (event) => {
-      console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+      console.log(`File ${event.path} was ${event.type} running tasks...`);
     });
 });
 
 // Test tasks ---------------------------------------------
-gulp.task('test', () => {
-  return gulp.src(testFiles, { read: false })
+gulp.task('pre-test', () => (
+  gulp.src(srcFiles)
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire())
+));
+
+gulp.task('test', ['pre-test'], () => (
+  gulp.src(testFiles, { read: false })
     .pipe(mocha({
-      reporter: 'spec'
-    }));
-});
+      reporter: 'spec',
+    }))
+    .pipe(istanbul.writeReports())
+    .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }))
+    .once('error', () => {
+      process.exit(1);
+    })
+    .once('end', () => {
+      process.exit();
+    })
+));
 
 gulp.task('test:watch', ['test'], () => {
   gulp.watch([srcFiles, testFiles], ['test'])
     .on('change', (event) => {
-      console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+      console.log(`File ${event.path} was ${event.type} running tasks...`);
     });
 });
 

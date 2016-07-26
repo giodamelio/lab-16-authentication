@@ -8,7 +8,8 @@ for submission in ./lab-*;do
   echo "$(tput setaf 4)Runing mocha for dir ${submission}$(tput sgr0)"
   cd "$submission"
   npm install
-  mocha
+  npm test
+  npm run lint
   if [[ "$?" -eq 1 ]];then 
     exit_code=1
   fi
