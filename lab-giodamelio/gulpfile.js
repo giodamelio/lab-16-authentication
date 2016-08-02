@@ -49,8 +49,9 @@ gulp.task('pre-test', () => (
     .pipe(istanbul.hookRequire())
 ));
 
-gulp.task('test', ['pre-test'], () => (
-  gulp.src(testFiles, { read: false })
+gulp.task('test', ['pre-test'], () => {
+  process.env.SECRET = 'THIS IS A BAD SECRET';
+  return gulp.src(testFiles, { read: false })
     .pipe(mocha({
       reporter: 'spec',
     }))
@@ -62,7 +63,7 @@ gulp.task('test', ['pre-test'], () => (
     .once('end', () => {
       process.exit();
     })
-));
+});
 
 gulp.task('test:watch', ['test'], () => {
   gulp.watch([srcFiles, testFiles], ['test'])

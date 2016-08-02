@@ -1,6 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const debug = require('debug')('cf:server');
+
+if (!process.env.SECRET) {
+  console.log('You must set a SECRET enviroment variable');
+  process.exit(1);
+}
 
 const server = express();
 
@@ -14,6 +20,7 @@ server.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
     return res.status(err.output.statusCode).json(err.output.payload);
   }
 
+  debug(err);
   return res.status(500).json({
     error: 'Internal Server Error',
   });

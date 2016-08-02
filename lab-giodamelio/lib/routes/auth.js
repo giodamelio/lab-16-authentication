@@ -1,10 +1,26 @@
 const express = require('express');
 const boom = require('boom');
 const debug = require('debug')('cf:routes:auth');
+const JWT = require('jsonwebtoken');
 
 const User = require('../models/user');
 
 const router = new express.Router();
+
+// Create a jwt token from user information
+const createToken = function(req, res, next) {
+  const user = req.user.toObject();
+  delete user.auth;
+  JWT.sign(user, process.env.SECRET, {}, (err, token) => {
+    if (err) {
+      return next(boom.unauthorized());
+    }
+
+    return res.json({
+      token,
+    });
+  });
+};
 
 router.post('/signup', (req, res, next) => {
   const user = new User({
@@ -17,15 +33,13 @@ router.post('/signup', (req, res, next) => {
 
   user.save()
     .then((savedUser) => {
-      savedUser = savedUser.toObject();
       debug(`Created new user: ${savedUser.username}`);
-      delete savedUser.auth;
-      res.json(savedUser);
+      req.user = savedUser;
+      next();
     })
-    .catch((err) => {
-      debug('Error:', err);
+    .catch(() => {
       next(boom.badRequest('Invalid user data'));
     });
-});
+}, createToken);
 
 module.exports = router;

@@ -31,8 +31,7 @@ describe('Auth', () => {
         .expect(200)
         .expect('Content-Type', /json/)
         .expect((res) => {
-          expect(res.body._id).to.exist;
-          expect(res.body.username).to.equal('AzureDiamond');
+          expect(res.body.token).to.exist;
         })
     );
 
