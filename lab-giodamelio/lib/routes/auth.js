@@ -4,6 +4,7 @@ const debug = require('debug')('cf:routes:auth');
 const JWT = require('jsonwebtoken');
 
 const User = require('../models/user');
+const parseBasicHttpHeader = require('../parseBasicHttpHeader');
 
 const router = new express.Router();
 
@@ -41,5 +42,12 @@ router.post('/signup', (req, res, next) => {
       next(boom.badRequest('Invalid user data'));
     });
 }, createToken);
+
+router.get('/signin', parseBasicHttpHeader, (req, res, next) => {
+  console.log(req.auth);
+  res.json({
+    test: 'HAHA',
+  });
+});
 
 module.exports = router;
