@@ -12,6 +12,3 @@
     # Run the server
     node lib/index.js
 
-## Bonus
-
-I did the bonus point
