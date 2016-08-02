@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const JWT = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -34,5 +35,19 @@ userSchema.pre('save', function(next) {
     return next();
   });
 });
+
+userSchema.methods.comparePassword = function(password) {
+  return new Promise((resolve, reject) => {
+    bcrypt.compare(password, this.auth.password, (err, data) => {
+      if (err) {
+        return reject(err);
+      }
+      if (data === false) {
+        return reject(new Error('Password did not match'));
+      }
+      return resolve(this);
+    });
+  });
+};
 
 module.exports = mongoose.model('User', userSchema);

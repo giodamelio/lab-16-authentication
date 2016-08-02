@@ -52,4 +52,70 @@ describe('Auth', () => {
         })
     );
   });
+
+  describe('/api/signin', () => {
+    beforeEach(() => (
+      new User({
+        username: 'giodamelio',
+        auth: {
+          email: 'giodamelio@gmail.com',
+          password: 'hunter2',
+        },
+      }).save()
+    ));
+
+    afterEach(() => (
+      User.remove({})
+    ));
+
+    it('Sign in to an existing user', () =>
+      supertest(server)
+        .get('/api/signin')
+        .auth('giodamelio@gmail.com', 'hunter2')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .expect((res) => {
+          expect(res.body.token).to.exist;
+        })
+    );
+
+    it('Sign in to a user that does not exist', () =>
+      supertest(server)
+        .get('/api/signin')
+        .auth('IDoNotExist', 'hunter2')
+        .expect(401)
+        .expect('Content-Type', /json/)
+        .expect({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid token',
+        })
+    );
+
+    it('Sign in to a user with incorrect username', () =>
+      supertest(server)
+        .get('/api/signin')
+        .auth('giodamelio@gmail.com', 'hunter3')
+        .expect(401)
+        .expect('Content-Type', /json/)
+        .expect({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid token',
+        })
+    );
+
+    it('Send invalid authorization header', () =>
+      supertest(server)
+        .get('/api/signin')
+        .set('Authorization', 'InValidTokenFormat')
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .expect({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid authorization header',
+        })
+    );
+  });
 });

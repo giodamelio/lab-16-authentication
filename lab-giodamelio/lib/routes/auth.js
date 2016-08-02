@@ -44,10 +44,22 @@ router.post('/signup', (req, res, next) => {
 }, createToken);
 
 router.get('/signin', parseBasicHttpHeader, (req, res, next) => {
-  console.log(req.auth);
-  res.json({
-    test: 'HAHA',
-  });
-});
+  const authError = boom.unauthorized('Invalid token');
+  User.findOne({ 'auth.email': req.auth.email })
+    .then((user) => {
+      if (!user) {
+        return next(authError);
+      }
+
+      return user.comparePassword(req.auth.password);
+    })
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch(() => {
+      next(authError);
+    });
+}, createToken);
 
 module.exports = router;
