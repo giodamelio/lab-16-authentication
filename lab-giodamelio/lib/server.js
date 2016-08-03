@@ -14,6 +14,7 @@ server.use(bodyParser.json());
 server.use(morgan('dev'));
 
 server.use('/api', require('./routes/auth'));
+server.use('/api/cars', require('./routes/cars'));
 
 server.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   if (err.isBoom) {
